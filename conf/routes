@@ -1,0 +1,23 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.PersonController.index()
+POST    /person                     controllers.PersonController.addPerson()
+GET     /persons                    controllers.PersonController.getPersons
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+#Log In Page
+GET     /user                       controllers.UserController.showUser
+POST    /user                       controllers.SMSAmazonController.twoFactorGenerator
+
+
+#Two Factor
+GET    /twoFactor                  controllers.SMSAmazonController.showTwoFactor
+POST   /twoFactor                  controllers.SMSAmazonController.allowAccess
+
+GET    /addPassword                controllers.UserController.showAddPassword
+POST   /addPassword                controllers.UserController.addPasswordAndSalt

@@ -1,0 +1,62 @@
+html {
+         /*background-image: url("http://hd-wall-papers.com/images/wallpapers/website-background-images/website-background-images-16.jpg");*/
+         background: linear-gradient(to left, #8e9eab , #eef2f3);
+         padding-top: 250px;
+     }
+/* Bordered form */
+form {
+    font-size: 1.3em;
+    color: #48484A;
+    text-align: center;
+}
+h1{
+    font-size: 2.9em;
+    color: #48484A;
+    background: -webkit-linear-gradient(#eee, #333);
+      -webkit-background-clip: text;
+    text-align: center;
+}
+h2{
+    font-size: 1.9em;
+    color: #48484A;
+    background: -webkit-linear-gradient(#eee, #333);
+      -webkit-background-clip: text;
+    text-align: center;
+}
+h3{
+    font-size: 1.8em;
+    color: #48484A;
+    background: -webkit-linear-gradient(#eee, #333);
+      -webkit-background-clip: text;
+    text-align: center;
+}
+
+
+/* Full-width inputs */
+input[type=text], input[type=password] {
+    width: 20%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    background: #E5E5E6;
+}
+
+/* Set a style for all buttons */
+button {
+    font-size: 0.8em;
+    background-color: #D0D0D1;
+    color: #48484A;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 20%;
+}
+
+/* Add a hover effect for buttons */
+button:hover {
+    opacity: 0.6;
+}
+

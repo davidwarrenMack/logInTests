@@ -1,0 +1,19 @@
+@()
+<!DOCTYPE html>
+<html lang="en" xmlns:background-size="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet" type ="text/css" href="@routes.Assets.at("stylesheets/login_twofactor.css")"/>
+</head>
+<body>
+<h2>A security verification code has been sent</h2>
+<h3>to the cell phone associated with this account.</h3>
+<form method="POST" action="@routes.SMSAmazonController.allowAccess">
+    Enter security code:
+    <input type= "password" name="userTwoFactor" id="userTwoFactor">
+    <br>
+    &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp <button type="submit">Log In</button>
+</form>
+</body>
+</html>

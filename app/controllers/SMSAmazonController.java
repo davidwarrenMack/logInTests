@@ -55,10 +55,6 @@ public class SMSAmazonController extends Controller
         String password = dynaForm.get("password");
         session("password", password);
 
-        //List<User> users = (List<User>)jpaApi.em().
-                //createQuery("select u from User u where u.userEmail = :sessionEmail and u.password = :password")
-                //.setParameter("sessionEmail", sessionEmail).setParameter("password", password).getResultList();
-
         List<User> users = (List<User>)jpaApi.em().
                 createQuery("select u from User u where u.userEmail = :sessionEmail", User.class)
                 .setParameter("sessionEmail", sessionEmail).getResultList();
@@ -76,8 +72,6 @@ public class SMSAmazonController extends Controller
                 query.setParameter("sessionEmail", sessionEmail);
                 query.setParameter("password", hash);
                 users = query.getResultList();
-                System.out.println(sql);
-
 
                 if (users.size() == 1)
                 {
@@ -126,6 +120,7 @@ public class SMSAmazonController extends Controller
                         .withStringValue("Promotional") //Sets the type to promotional.
                         .withDataType("String"));
                 sendSMSMessage(snsClient, message, phoneNumber, smsAttributes);
+                System.out.println("two factor code is: " + twoFactor);
 
 
                 return redirect(routes.SMSAmazonController.showTwoFactor());
