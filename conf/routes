@@ -21,3 +21,4 @@ POST   /twoFactor                  controllers.SMSAmazonController.allowAccess
 
 GET    /addPassword                controllers.UserController.showAddPassword
 POST   /addPassword                controllers.UserController.addPasswordAndSalt
+

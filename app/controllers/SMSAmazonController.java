@@ -56,7 +56,7 @@ public class SMSAmazonController extends Controller
         session("password", password);
 
         List<User> users = (List<User>)jpaApi.em().
-                createQuery("select u from User u where u.userEmail = :sessionEmail", User.class)
+                createQuery("SELECT u FROM User u WHERE u.userEmail = :sessionEmail", User.class)
                 .setParameter("sessionEmail", sessionEmail).getResultList();
 
 
@@ -75,7 +75,7 @@ public class SMSAmazonController extends Controller
 
                 if (users.size() == 1)
                 {
-                    System.out.println(hash + sessionEmail);
+                    System.out.println("hash: " + hash + " salt: " + salt + " Password: " + password + " session email: " + sessionEmail);
                 }
 
             }
@@ -91,7 +91,8 @@ public class SMSAmazonController extends Controller
 
                 session("cellPhone", user.cellPhone);
                 session("patientId", user.patientId);
-
+                session("userEmail", user.userEmail);
+                session("userId", user.userId);
 
                 Random rand = new Random();
                 int num1, num2, num3, num4;
@@ -108,6 +109,7 @@ public class SMSAmazonController extends Controller
                 AmazonSNSClient snsClient = new AmazonSNSClient();
                 String message = "Your security verification code is: " + twoFactor;
                 String phoneNumber = "+" + session("cellPhone");
+                System.out.println("number look up test: " + session("cellPhone"));
                 Map<String, MessageAttributeValue> smsAttributes =
                         new HashMap<String, MessageAttributeValue>();
                 smsAttributes.put("AWS.SNS.SMS.SenderID", new MessageAttributeValue()
