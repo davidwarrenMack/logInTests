@@ -155,6 +155,7 @@ public class SMSAmazonController extends Controller
                 .withPhoneNumber(phoneNumber)
                 .withMessageAttributes(smsAttributes));
         System.out.println(result);
+        System.out.println("message sent test text");
     }
 
     @Transactional
