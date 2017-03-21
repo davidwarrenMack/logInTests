@@ -45,8 +45,6 @@ public class SMSAmazonController extends Controller
     @Transactional
     public Result twoFactorGenerator()
     {
-        //Call route = routes.UserController.showUser();
-
         DynamicForm dynaForm = formFactory.form().bindFromRequest();
 
         String sessionEmail = dynaForm.get("sessionEmail");
@@ -55,8 +53,16 @@ public class SMSAmazonController extends Controller
         String password = dynaForm.get("password");
         session("password", password);
 
+        String confirmPassword = dynaForm.get("confirmPassword");
+
+        if(!password.equals(confirmPassword))
+        {
+            session().clear();
+            return notFound();
+        }
+
         List<User> users = (List<User>)jpaApi.em().
-                createQuery("SELECT u FROM User u WHERE u.userEmail = :sessionEmail", User.class)
+                createQuery("SELECT u FROM User u WHERE u.userEmail = :sessionEmail" , User.class)
                 .setParameter("sessionEmail", sessionEmail).getResultList();
 
 
@@ -75,87 +81,76 @@ public class SMSAmazonController extends Controller
 
                 if (users.size() == 1)
                 {
-                    System.out.println("hash: " + hash + " salt: " + salt + " Password: " + password + " session email: " + sessionEmail);
+                    User user = users.get(0);
+
+                    session("cellPhone", user.cellPhone);
+                    session("patientId", user.patientId);
+                    session("userEmail", user.userEmail);
+                    session("userId", user.userId);
+
+                    Random rand = new Random();
+                    int num1, num2, num3, num4;
+
+                    num1 = rand.nextInt(9) + 1;
+                    num2 = rand.nextInt(9) + 1;
+                    num3 = rand.nextInt(9) + 1;
+                    num4 = rand.nextInt(9) + 1;
+
+                    String twoFactor = num1 + "" + num2 + "" + num3 + "" + num4 + "";
+                    session("twoFactor", twoFactor);
+
+                    AmazonSNSClient snsClient = new AmazonSNSClient();
+                    String message = "Your security verification code is: " + twoFactor;
+                    String phoneNumber = "+" + session("cellPhone");
+                    System.out.println("number look up test: " + session("cellPhone"));
+                    Map<String, MessageAttributeValue> smsAttributes =
+                            new HashMap<String, MessageAttributeValue>();
+                    smsAttributes.put("AWS.SNS.SMS.SenderID", new MessageAttributeValue()
+                            .withStringValue("mySenderID") //The sender ID shown on the device.
+                            .withDataType("String"));
+                    smsAttributes.put("AWS.SNS.SMS.MaxPrice", new MessageAttributeValue()
+                            .withStringValue("0.50") //Sets the max price to 0.50 USD.
+                            .withDataType("Number"));
+                    smsAttributes.put("AWS.SNS.SMS.SMSType", new MessageAttributeValue()
+                            .withStringValue("Promotional") //Sets the type to promotional.
+                            .withDataType("String"));
+                    sendSMSMessage(snsClient, message, phoneNumber, smsAttributes);
+                    System.out.println("two factor code is: " + twoFactor);
+
+                    return redirect(routes.SMSAmazonController.showTwoFactor());
+                }
+
+                else
+                {
+                    session().clear();
+                    return redirect(routes.UserController.showLogin());
                 }
 
             }
             catch (Exception e)
             {
-                System.out.println(e + "error");
+                session().clear();
+                return notFound();
             }
 
-
-            if (users.size() == 1)
-            {
-                User user = users.get(0);
-
-                session("cellPhone", user.cellPhone);
-                session("patientId", user.patientId);
-                session("userEmail", user.userEmail);
-                session("userId", user.userId);
-
-                Random rand = new Random();
-                int num1, num2, num3, num4;
-
-                num1 = rand.nextInt(9) + 1;
-                num2 = rand.nextInt(9) + 1;
-                num3 = rand.nextInt(9) + 1;
-                num4 = rand.nextInt(9) + 1;
-
-                String twoFactor = num1 + "" + num2 + "" + num3 + "" + num4 + "";
-                session("twoFactor", twoFactor);
-
-
-                AmazonSNSClient snsClient = new AmazonSNSClient();
-                String message = "Your security verification code is: " + twoFactor;
-                String phoneNumber = "+" + session("cellPhone");
-                System.out.println("number look up test: " + session("cellPhone"));
-                Map<String, MessageAttributeValue> smsAttributes =
-                        new HashMap<String, MessageAttributeValue>();
-                smsAttributes.put("AWS.SNS.SMS.SenderID", new MessageAttributeValue()
-                        .withStringValue("mySenderID") //The sender ID shown on the device.
-                        .withDataType("String"));
-                smsAttributes.put("AWS.SNS.SMS.MaxPrice", new MessageAttributeValue()
-                        .withStringValue("0.50") //Sets the max price to 0.50 USD.
-                        .withDataType("Number"));
-                smsAttributes.put("AWS.SNS.SMS.SMSType", new MessageAttributeValue()
-                        .withStringValue("Promotional") //Sets the type to promotional.
-                        .withDataType("String"));
-                sendSMSMessage(snsClient, message, phoneNumber, smsAttributes);
-                System.out.println("two factor code is: " + twoFactor);
-
-
-                return redirect(routes.SMSAmazonController.showTwoFactor());
-            }
-            else
-                {
-                    return redirect(routes.UserController.showUser());
-
-                }
-
         }
-        else if (users.size() == 0)
-        {
-            session().clear();
-            return redirect(routes.UserController.showUser());
-        }
+
         else
         {
             session().clear();
-            return redirect(routes.UserController.showUser());
+            return redirect(routes.UserController.showLogin());
         }
 
     }
 
     public static void sendSMSMessage(AmazonSNSClient snsClient, String message,
-                                      String phoneNumber, Map<String, MessageAttributeValue> smsAttributes)
+           String phoneNumber, Map<String, MessageAttributeValue> smsAttributes)
     {
         PublishResult result = snsClient.publish(new PublishRequest()
                 .withMessage(message)
                 .withPhoneNumber(phoneNumber)
                 .withMessageAttributes(smsAttributes));
         System.out.println(result);
-        System.out.println("message sent test text");
     }
 
     @Transactional

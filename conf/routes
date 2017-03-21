@@ -11,16 +11,21 @@ GET     /persons                    controllers.PersonController.getPersons
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 #Log In Page
-GET     /user                       controllers.UserController.showUser
+GET     /login                      controllers.UserController.showLogin
 POST    /user                       controllers.SMSAmazonController.twoFactorGenerator
-
 
 #Two Factor
 GET    /twoFactor                  controllers.SMSAmazonController.showTwoFactor
 POST   /twoFactor                  controllers.SMSAmazonController.allowAccess
 
 GET    /addPassword                controllers.UserController.showAddPassword
-POST   /addPassword                controllers.UserController.addPasswordAndSalt
+POST   /addPassword                controllers.UserController.passwordWizard
 
 GET    /showAddUser                controllers.UserController.showAddUser
-POST   /postAddUser                controllers.UserController.postAddUser
+POST   /postAddUser                controllers.UserController.addUser
+
+GET    /viewMyInfo                 controllers.UserController.viewMyInfo
+GET    /editUser/:id               controllers.UserController.editUser(id:String)
+POST   /updatePatient              controllers.UserController.updatePatient
+
+POST   /logout                     controllers.UserController.logout

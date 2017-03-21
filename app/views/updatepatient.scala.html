@@ -1,0 +1,30 @@
+@(patient: Patient)
+<!DOCTYPE html>
+<html lang="en" xmlns:background-size="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="stylesheet" type ="text/css" href="@routes.Assets.at("stylesheets/login_twofactor.css")"/>
+    <h1>Update your information</h1>
+</head>
+<body>
+<form method="POST" action="@routes.UserController.updatePatient()" id="updatePatient">
+    <input type="hidden" name="patientId" value="@patient.patientId"/><br>
+    First Name: <input type="text" name="firstName" id="firstName" value="@patient.firstName"/><br>
+    Last Name: <input type="text" name="lastName" id="lastName" value="@patient.lastName"/><br>
+    First Date of Birth (yyyy-mm-dd): <input type="text" name="dob" id="dob" value="@patient.dob"/><br>
+    Gender (M/F): <input type="text" name="gender" id="gender" value="@patient.gender"/><br>
+    Address: <input type="text" name="address" id="address" value="@patient.address"/><br>
+    City: <input type="text" name="city" id="city" value="@patient.city"/><br>
+    State abbreviation (ex: AR): <input type="text" name="state" id="state" value="@patient.state"/><br>
+    Cell Phone (no dashes or spaces ex: 5556667777): <input type="text" name="cellPhone" id="cellPhone" value="@patient.cellPhone"/><br>
+    Zip: <input type="text" name="zip" id="zip" value="@patient.zip"/><br>
+    Email: <input type="text" name="email" id="email" value="@patient.email"/><br>
+    <button>Update User</button>
+</form>
+<form method="GET" action="@routes.UserController.passwordWizard">
+    &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp <button type="submit">Change password</button>
+    <br>
+</form>
+</body>
+</html>

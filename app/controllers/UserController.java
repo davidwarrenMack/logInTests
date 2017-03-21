@@ -15,7 +15,6 @@ import play.mvc.Result;
 import javax.inject.Inject;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -34,85 +33,14 @@ public class UserController extends Controller
         this.jpaApi = jpaApi;
     }
 
-
-    public Result showUser()
+    public Result showLogin()
     {
-        return ok(views.html.user.render());
+        return ok(views.html.login.render());
     }
+
     public Result showAddPassword()
     {
-        return ok(views.html.addpasswordandsalt.render());
-    }
-
-    @Transactional
-    public Result addPasswordAndSalt()
-    {
-        Call route = routes.UserController.addPasswordAndSalt();
-
-        DynamicForm dynaForm = formFactory.form().bindFromRequest();
-
-        String userEmail = dynaForm.get("userEmail");
-        String password = dynaForm.get("password");
-        String cellPhone = dynaForm.get ("cellPhone");
-        String cellPhone1 = "1" + cellPhone;
-
-
-
-
-        byte hash[] = null;
-        byte salt[] = null;
-
-        try
-        {
-            //Get a nice random salt
-            salt = getNewSalt();
-            System.out.println("test" + salt);
-            //hash the password
-            hash = Password.hashPassword(password.toCharArray(), salt);
-        }
-        catch (Exception e)
-        {
-            System.out.println(e);
-        }
-
-        List<User> users = (List<User>)jpaApi.em().
-                createQuery("select u from User u where u.userEmail = :userEmail", User.class).
-                setParameter("userEmail", userEmail).getResultList();
-        System.out.println("email and password " + userEmail + " " + password);
-
-        if (users.size() == 1)
-        {
-            User user = users.get(0);
-            user.password = hash;
-            user.passwordSalt = salt;
-            user.cellPhone = cellPhone1;
-            System.out.println(cellPhone1);
-            jpaApi.em().persist(user);
-            System.out.println("password hash: " + hash);
-            System.out.println("password salt: " + salt);
-
-            return ok(toJson("refresh DB for updated values"));
-        }
-        else if (users.size() == 0)
-            {
-                //String cellPhone1 = "1" + cellPhone;
-                System.out.println(cellPhone1);
-
-                User user = new User();
-                user.password = hash;
-                user.passwordSalt = salt;
-                user.cellPhone = cellPhone1;
-                user.userEmail = userEmail;
-                jpaApi.em().persist(user);
-                System.out.println("new password hash: " + hash);
-                System.out.println("new password salt: " + salt);
-
-                return ok(toJson("refresh DB for updated values"));
-            }
-        else
-            {
-                return redirect(route);
-            }
+        return ok(views.html.passwordwizard.render());
     }
 
     public Result showAddUser()
@@ -121,11 +49,109 @@ public class UserController extends Controller
     }
 
     @Transactional
-    public Result postAddUser()
+    public Result passwordWizard()
+    {
+        Call route = routes.UserController.passwordWizard();
+
+        DynamicForm dynaForm = formFactory.form().bindFromRequest();
+
+        String userEmail = dynaForm.get("userEmail");
+        String newPassword = dynaForm.get("newPassword");
+        String confirmPassword = dynaForm.get("confirmPassword");
+        String cellPhone = dynaForm.get ("cellPhone");
+        String cellPhone1 = "1" + cellPhone;
+
+        if (!newPassword.equals(confirmPassword))
+        {
+            return internalServerError();
+        }
+
+        List<Patient> patients = (List<Patient>)jpaApi.em().
+                createQuery("SELECT p FROM Patient p WHERE p.email = :userEmail" , Patient.class)
+                .setParameter("userEmail", userEmail).getResultList();
+
+        if (patients.size() == 1)
+        {
+            Patient patient = patients.get(0);
+            System.out.println("current patient Id: " + patient.patientId);
+            session("patientsId", patient.patientId);
+            System.out.println("current session Id: " + session("patientsId"));
+        }
+        else
+            {
+                return internalServerError();
+            }
+
+        byte hash[] = null;
+        byte salt[] = null;
+
+        try
+        {
+            //Get a nice random salt
+            salt = getNewSalt();
+            System.out.println("new salt is: " + salt);
+            //hash the password
+            hash = Password.hashPassword(newPassword.toCharArray(), salt);
+
+            List<User> users = (List<User>)jpaApi.em().
+                    createQuery("select u from User u where u.userEmail = :userEmail", User.class).
+                    setParameter("userEmail", userEmail).getResultList();
+            //System.out.println("email and password " + userEmail + " " + newPassword);
+
+            if (users.size() == 1)
+            {
+                System.out.println("existing user found and will be updated");
+                User user = users.get(0);
+                user.patientId = session("patientsId");
+                user.password = hash;
+                user.passwordSalt = salt;
+                user.cellPhone = cellPhone1;
+                System.out.println(cellPhone1);
+                jpaApi.em().persist(user);
+                System.out.println("password hash: " + hash);
+                System.out.println("password salt: " + salt);
+                System.out.println("patient ID: " + user.patientId);
+
+
+                return ok(toJson("refresh DB for updated values"));
+            }
+            else if (users.size() == 0)
+            {
+
+                System.out.println("New user will be created and added to the User table");
+                User user = new User();
+                user.patientId = session("patientsId");
+                user.password = hash;
+                user.passwordSalt = salt;
+                user.cellPhone = cellPhone1;
+                user.userEmail = userEmail;
+                jpaApi.em().persist(user);
+                System.out.println("new password hash: " + hash);
+                System.out.println("new password salt: " + salt);
+                System.out.println("patient ID: " + user.patientId);
+
+
+                return ok(toJson("refresh DB for updated values"));
+            }
+            else
+            {
+                return redirect(route);
+            }
+        }
+        catch (Exception e)
+        {
+            System.out.println(e);
+            return internalServerError();
+        }
+
+
+    }
+
+    @Transactional
+    public Result addUser()
     {
         DynamicForm dynaForm = formFactory.form().bindFromRequest();
 
-        Patient patient = new Patient();
 
         String firstName = dynaForm.get("firstName");
         String lastName = dynaForm.get("lastName");
@@ -137,13 +163,12 @@ public class UserController extends Controller
         String cellPhone = dynaForm.get("cellPhone");
         String zip = dynaForm.get("zip");
         String email = dynaForm.get("email");
-        System.out.println("dob: " + dob);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         formatter = formatter.withLocale(Locale.US);
         LocalDate dob1 = LocalDate.parse(dob, formatter);
-        System.out.println("dob1: " + dob1);
 
+        Patient patient = new Patient();
         patient.firstName = firstName;
         patient.lastName = lastName;
         patient.dob = dob1;
@@ -155,11 +180,84 @@ public class UserController extends Controller
         patient.zip = zip;
         patient.email = email;
 
-
         jpaApi.em().persist(patient);
 
-        //return ok(toJson("addeduser: " + firstName + " " + lastName + " " + dob + " " +
-        //gender + " " + address + " " + city + " " + state + " " + cellPhone + " " + zip + " " + email));
         return redirect(routes.UserController.showAddPassword());
+    }
+    @Transactional
+    public Result viewMyInfo()
+    {
+        String patientId = session("patientId");
+        List<Patient> patient = (List<Patient>) jpaApi.em().
+                createQuery("select p from Patient p where p.patientId = :patientId").
+                setParameter("patientId", patientId).getResultList();
+
+        return ok(views.html.viewmyinfo.render(patient));
+    }
+
+    @Transactional (readOnly = true)
+    public Result editUser(String patientId)
+    {
+        session("patientId");
+        Patient patient = (Patient) jpaApi.em().
+                createQuery("select p from Patient p where p.patientId = :patientId")
+                .setParameter("patientId", session("patientId")).getSingleResult();
+        return  ok(views.html.updatepatient.render(patient));
+    }
+
+    @Transactional
+    public Result updatePatient()
+    {
+        Call route = routes.UserController.updatePatient();
+
+        DynamicForm dynaForm = formFactory.form().bindFromRequest();
+
+        String firstName = dynaForm.get("firstName");
+        String lastName = dynaForm.get("lastName");
+        String dob = dynaForm.get("dob");
+        String gender = dynaForm.get("gender");
+        String address = dynaForm.get("address");
+        String city = dynaForm.get("city");
+        String state = dynaForm.get("state");
+        String cellPhone = dynaForm.get("cellPhone");
+        String zip = dynaForm.get("zip");
+        String email = dynaForm.get("email");
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        formatter = formatter.withLocale(Locale.US);
+        LocalDate dob1 = LocalDate.parse(dob, formatter);
+        String patientId = session("patientId");
+        List<Patient> patients = (List<Patient>)jpaApi.em().
+                createQuery("select p FROM Patient p WHERE p.patientId = :patientId" , Patient.class)
+                .setParameter("patientId", patientId).getResultList();
+
+        if(patients.size() == 1)
+        {
+            Patient patient = patients.get(0);
+            patient.firstName = firstName;
+            patient.lastName = lastName;
+            patient.dob = dob1;
+            patient.gender = gender;
+            patient.address = address;
+            patient.city = city;
+            patient.state = state;
+            patient.cellPhone = cellPhone;
+            patient.zip = zip;
+            patient.email = email;
+
+            jpaApi.em().persist(patient);
+
+            return ok(toJson("update successful, check db for updated values"));
+        }
+        else
+            {
+                return redirect(route);
+            }
+    }
+
+    public Result logout()
+    {
+        session().clear();
+        return redirect(routes.UserController.showLogin());
     }
 }

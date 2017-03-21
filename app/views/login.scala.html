@@ -17,11 +17,14 @@
     &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp Password
     <input type="password" name="password" id="password">
     <br>
+    Confirm Password
+    <input type= "password" name="confirmPassword" id="confirmPassword"> <br>
     &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp <button type="submit">Log In</button>
     <br>
-    &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp <button>Create an account</button>
+</form>
+<form method="GET" action="@routes.UserController.showAddUser">
+    &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp <button type="submit">Create an account</button>
     <br>
-
 </form>
 </body>
 
