@@ -5,6 +5,7 @@ import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 import models.Password;
+import models.Patient;
 import models.User;
 import play.data.DynamicForm;
 import play.data.FormFactory;
@@ -40,8 +41,6 @@ public class SMSAmazonController extends Controller
         return ok(views.html.twofactor.render());
     }
 
-
-
     @Transactional
     public Result twoFactorGenerator()
     {
@@ -49,10 +48,8 @@ public class SMSAmazonController extends Controller
 
         String sessionEmail = dynaForm.get("sessionEmail");
         session("sessionEmail", sessionEmail);
-
         String password = dynaForm.get("password");
         session("password", password);
-
         String confirmPassword = dynaForm.get("confirmPassword");
 
         if(!password.equals(confirmPassword))
@@ -65,74 +62,83 @@ public class SMSAmazonController extends Controller
                 createQuery("SELECT u FROM User u WHERE u.userEmail = :sessionEmail" , User.class)
                 .setParameter("sessionEmail", sessionEmail).getResultList();
 
-
         if (users.size() == 1)
         {
             try
             {
-                byte[] salt = users.get(0).passwordSalt;
-                byte[] hash = Password.hashPassword(password.toCharArray(), salt);
+                List<Patient> patients = (List<Patient>) jpaApi.em().
+                        createQuery("select p from Patient p where p.email = :sessionEmail", Patient.class).
+                        setParameter("sessionEmail", sessionEmail).getResultList();
 
-                String sql = "SELECT u FROM User u WHERE u.userEmail = :sessionEmail AND u.password = :password";
-                TypedQuery query = jpaApi.em().createQuery(sql, User.class);
-                query.setParameter("sessionEmail", sessionEmail);
-                query.setParameter("password", hash);
-                users = query.getResultList();
-
-                if (users.size() == 1)
+                if (patients.size() == 1)
                 {
-                    User user = users.get(0);
+                    Patient patient = patients.get(0);
+                    session("patientId", patient.patientId);
 
-                    session("cellPhone", user.cellPhone);
-                    session("patientId", user.patientId);
-                    session("userEmail", user.userEmail);
-                    session("userId", user.userId);
+                    byte[] salt = users.get(0).passwordSalt;
+                    byte[] hash = Password.hashPassword(password.toCharArray(), salt);
 
-                    Random rand = new Random();
-                    int num1, num2, num3, num4;
+                    String sql = "SELECT u FROM User u WHERE u.userEmail = :sessionEmail AND u.password = :password";
+                    TypedQuery query = jpaApi.em().createQuery(sql, User.class);
+                    query.setParameter("sessionEmail", sessionEmail);
+                    query.setParameter("password", hash);
+                    users = query.getResultList();
 
-                    num1 = rand.nextInt(9) + 1;
-                    num2 = rand.nextInt(9) + 1;
-                    num3 = rand.nextInt(9) + 1;
-                    num4 = rand.nextInt(9) + 1;
+                    if (users.size() == 1)
+                    {
+                        User user = users.get(0);
 
-                    String twoFactor = num1 + "" + num2 + "" + num3 + "" + num4 + "";
-                    session("twoFactor", twoFactor);
+                        session("cellPhone", user.cellPhone);
+                        session("userEmail", user.userEmail);
+                        session("userId", user.userId);
 
-                    AmazonSNSClient snsClient = new AmazonSNSClient();
-                    String message = "Your security verification code is: " + twoFactor;
-                    String phoneNumber = "+" + session("cellPhone");
-                    System.out.println("number look up test: " + session("cellPhone"));
-                    Map<String, MessageAttributeValue> smsAttributes =
-                            new HashMap<String, MessageAttributeValue>();
-                    smsAttributes.put("AWS.SNS.SMS.SenderID", new MessageAttributeValue()
-                            .withStringValue("mySenderID") //The sender ID shown on the device.
-                            .withDataType("String"));
-                    smsAttributes.put("AWS.SNS.SMS.MaxPrice", new MessageAttributeValue()
-                            .withStringValue("0.50") //Sets the max price to 0.50 USD.
-                            .withDataType("Number"));
-                    smsAttributes.put("AWS.SNS.SMS.SMSType", new MessageAttributeValue()
-                            .withStringValue("Promotional") //Sets the type to promotional.
-                            .withDataType("String"));
-                    sendSMSMessage(snsClient, message, phoneNumber, smsAttributes);
-                    System.out.println("two factor code is: " + twoFactor);
+                        Random rand = new Random();
+                        int num1, num2, num3, num4;
 
-                    return redirect(routes.SMSAmazonController.showTwoFactor());
+                        num1 = rand.nextInt(9) + 1;
+                        num2 = rand.nextInt(9) + 1;
+                        num3 = rand.nextInt(9) + 1;
+                        num4 = rand.nextInt(9) + 1;
+
+                        String twoFactor = num1 + "" + num2 + "" + num3 + "" + num4 + "";
+                        session("twoFactor", twoFactor);
+
+                        AmazonSNSClient snsClient = new AmazonSNSClient();
+                        String message = "Your security verification code is: " + twoFactor;
+                        String phoneNumber = "+" + session("cellPhone");
+                        Map<String, MessageAttributeValue> smsAttributes =
+                                new HashMap<String, MessageAttributeValue>();
+                        smsAttributes.put("AWS.SNS.SMS.SenderID", new MessageAttributeValue()
+                                .withStringValue("mySenderID") //The sender ID shown on the device.
+                                .withDataType("String"));
+                        smsAttributes.put("AWS.SNS.SMS.MaxPrice", new MessageAttributeValue()
+                                .withStringValue("0.50") //Sets the max price to 0.50 USD.
+                                .withDataType("Number"));
+                        smsAttributes.put("AWS.SNS.SMS.SMSType", new MessageAttributeValue()
+                                .withStringValue("Promotional") //Sets the type to promotional.
+                                .withDataType("String"));
+                        sendSMSMessage(snsClient, message, phoneNumber, smsAttributes);
+                        System.out.println("two factor code is: " + twoFactor);
+
+                        return redirect(routes.SMSAmazonController.showTwoFactor());
+                    }
+                    else
+                    {
+                        session().clear();
+                        return redirect(routes.UserController.showLogin());
+                    }
                 }
-
                 else
-                {
-                    session().clear();
-                    return redirect(routes.UserController.showLogin());
-                }
-
+                    {
+                        session().clear();
+                        return redirect(routes.UserController.showLogin());
+                    }
             }
             catch (Exception e)
             {
                 session().clear();
                 return notFound();
             }
-
         }
 
         else
@@ -140,7 +146,6 @@ public class SMSAmazonController extends Controller
             session().clear();
             return redirect(routes.UserController.showLogin());
         }
-
     }
 
     public static void sendSMSMessage(AmazonSNSClient snsClient, String message,
@@ -168,7 +173,7 @@ public class SMSAmazonController extends Controller
         else
         {
             session().clear();
-            return ok(toJson("Access denied. Return to log in page and log in to generate a new two factor code"));
+            return ok(toJson("Access denied and session cleared. Return to log in page and log in to generate a new two factor code"));
         }
     }
 }

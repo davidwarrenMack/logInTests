@@ -66,92 +66,83 @@ public class UserController extends Controller
             return internalServerError();
         }
 
-        List<Patient> patients = (List<Patient>)jpaApi.em().
-                createQuery("SELECT p FROM Patient p WHERE p.email = :userEmail" , Patient.class)
-                .setParameter("userEmail", userEmail).getResultList();
+        List<Patient> patients = (List<Patient>) jpaApi.em().
+                createQuery("select p from Patient p where p.email = :userEmail", Patient.class).
+                setParameter("userEmail", userEmail).getResultList();
 
         if (patients.size() == 1)
         {
             Patient patient = patients.get(0);
-            System.out.println("current patient Id: " + patient.patientId);
-            session("patientsId", patient.patientId);
-            System.out.println("current session Id: " + session("patientsId"));
-        }
-        else
+
+            if (patient.patientId.equals(session("patientId")))
             {
-                return internalServerError();
-            }
+                System.out.println("Patient Id equiv found and password can be persisted");
 
-        byte hash[] = null;
-        byte salt[] = null;
+                byte hash[] = null;
+                byte salt[] = null;
 
-        try
-        {
-            //Get a nice random salt
-            salt = getNewSalt();
-            System.out.println("new salt is: " + salt);
-            //hash the password
-            hash = Password.hashPassword(newPassword.toCharArray(), salt);
+                try
+                {
+                    salt = getNewSalt();
+                    hash = Password.hashPassword(newPassword.toCharArray(), salt);
 
-            List<User> users = (List<User>)jpaApi.em().
-                    createQuery("select u from User u where u.userEmail = :userEmail", User.class).
-                    setParameter("userEmail", userEmail).getResultList();
-            //System.out.println("email and password " + userEmail + " " + newPassword);
+                    List<User> users = (List<User>)jpaApi.em().
+                            createQuery("select u from User u where u.userEmail = :userEmail", User.class).
+                            setParameter("userEmail", userEmail).getResultList();
 
-            if (users.size() == 1)
-            {
-                System.out.println("existing user found and will be updated");
-                User user = users.get(0);
-                user.patientId = session("patientsId");
-                user.password = hash;
-                user.passwordSalt = salt;
-                user.cellPhone = cellPhone1;
-                System.out.println(cellPhone1);
-                jpaApi.em().persist(user);
-                System.out.println("password hash: " + hash);
-                System.out.println("password salt: " + salt);
-                System.out.println("patient ID: " + user.patientId);
+                    if (users.size() == 1)
+                    {
+                        System.out.println("existing user found and will be updated");
+                        User user = users.get(0);
+                        //user.patientId = session("patientsId");
+                        user.password = hash;
+                        user.passwordSalt = salt;
+                        user.cellPhone = cellPhone1;
+                        System.out.println(cellPhone1);
+                        jpaApi.em().persist(user);
 
+                        return ok(toJson("refresh DB for updated values"));
+                    }
+                    else if (users.size() == 0)
+                    {
 
-                return ok(toJson("refresh DB for updated values"));
-            }
-            else if (users.size() == 0)
-            {
+                        System.out.println("New user will be created and added to the User table");
+                        User user = new User();
+                        user.patientId = session("patientsId");
+                        user.password = hash;
+                        user.passwordSalt = salt;
+                        user.cellPhone = cellPhone1;
+                        user.userEmail = userEmail;
+                        jpaApi.em().persist(user);
 
-                System.out.println("New user will be created and added to the User table");
-                User user = new User();
-                user.patientId = session("patientsId");
-                user.password = hash;
-                user.passwordSalt = salt;
-                user.cellPhone = cellPhone1;
-                user.userEmail = userEmail;
-                jpaApi.em().persist(user);
-                System.out.println("new password hash: " + hash);
-                System.out.println("new password salt: " + salt);
-                System.out.println("patient ID: " + user.patientId);
-
-
-                return ok(toJson("refresh DB for updated values"));
+                        return ok(toJson("refresh DB for updated values"));
+                    }
+                    else
+                    {
+                        return redirect(route);
+                    }
+                }
+                catch (Exception e)
+                {
+                    System.out.println("error: " + e);
+                    return redirect(route);
+                }
             }
             else
             {
                 return redirect(route);
             }
         }
-        catch (Exception e)
+        else
         {
-            System.out.println(e);
-            return internalServerError();
+            return redirect(route);
         }
-
-
     }
 
     @Transactional
     public Result addUser()
     {
         DynamicForm dynaForm = formFactory.form().bindFromRequest();
-
 
         String firstName = dynaForm.get("firstName");
         String lastName = dynaForm.get("lastName");
@@ -184,12 +175,13 @@ public class UserController extends Controller
 
         return redirect(routes.UserController.showAddPassword());
     }
+
     @Transactional
     public Result viewMyInfo()
     {
         String patientId = session("patientId");
         List<Patient> patient = (List<Patient>) jpaApi.em().
-                createQuery("select p from Patient p where p.patientId = :patientId").
+                createQuery("select p from Patient p where p.patientId = :patientId", Patient.class).
                 setParameter("patientId", patientId).getResultList();
 
         return ok(views.html.viewmyinfo.render(patient));

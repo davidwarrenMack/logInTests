@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:background-size="http://www.w3.org/1999/xhtml">
 <head>
+    <title>New User Creator</title>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="stylesheet" type ="text/css" href="@routes.Assets.at("stylesheets/login_twofactor.css")"/>
@@ -9,16 +10,16 @@
 </head>
 <body>
 <form method="POST" action="@routes.UserController.addUser">
-    First Name: <input type="text" name="firstName" id="firstName"><br>
-    Last Name: <input type="text" name="lastName" id="lastName"><br>
-    First Date of Birth (yyyy-mm-dd): <input type="text" name="dob" id="dob"><br>
-    Gender (M/F): <input type="text" name="gender" id="gender"><br>
-    Address: <input type="text" name="address" id="address"><br>
-    City: <input type="text" name="city" id="city"><br>
-    State abbreviation (ex: AR): <input type="text" name="state" id="state"><br>
-    Cell Phone (no dashes or spaces ex: 5556667777): <input type="text" name="cellPhone" id="cellPhone"><br>
-    Zip: <input type="text" name="zip" id="zip"><br>
-    Email: <input type="text" name="email" id="email"><br>
+    First Name: <br> <input type="text" name="firstName" id="firstName"><br>
+    Last Name: <br> <input type="text" name="lastName" id="lastName"><br>
+    First Date of Birth (yyyy-mm-dd): <br> <input type="text" name="dob" id="dob"><br>
+    Gender (M/F): <br> <input type="text" name="gender" id="gender"><br>
+    Address: <br> <input type="text" name="address" id="address"><br>
+    City: <br> <input type="text" name="city" id="city"><br>
+    State abbreviation (ex: AR): <br> <input type="text" name="state" id="state"><br>
+    Cell Phone (no dashes or spaces <br> ex: 5556667777): <br> <input type="text" name="cellPhone" id="cellPhone"><br>
+    Zip: <br> <input type="text" name="zip" id="zip"><br>
+    Email: <br> <input type="text" name="email" id="email"><br>
     <button type="submit">Add User</button>
 </form>
 </body>

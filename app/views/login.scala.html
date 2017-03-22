@@ -11,20 +11,16 @@
 </head>
 <body>
 <form method="POST" action="@routes.SMSAmazonController.twoFactorGenerator">
-    &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp Email
-    <input type="text" name="sessionEmail" id="sessionEmail">
-    <br>
-    &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp Password
-    <input type="password" name="password" id="password">
-    <br>
-    Confirm Password
+    Email <br>
+    <input type="text" name="sessionEmail" id="sessionEmail"> <br>
+    Password <br>
+    <input type="password" name="password" id="password"> <br>
+    Confirm Password <br>
     <input type= "password" name="confirmPassword" id="confirmPassword"> <br>
-    &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp <button type="submit">Log In</button>
-    <br>
+    <button type="submit">Log In</button> <br>
 </form>
 <form method="GET" action="@routes.UserController.showAddUser">
-    &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp <button type="submit">Create an account</button>
-    <br>
+    <button type="submit">Create an account</button> <br>
 </form>
 </body>
 

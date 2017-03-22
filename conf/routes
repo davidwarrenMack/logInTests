@@ -18,14 +18,18 @@ POST    /user                       controllers.SMSAmazonController.twoFactorGen
 GET    /twoFactor                  controllers.SMSAmazonController.showTwoFactor
 POST   /twoFactor                  controllers.SMSAmazonController.allowAccess
 
+#Admin Password/Password Wizard
 GET    /addPassword                controllers.UserController.showAddPassword
 POST   /addPassword                controllers.UserController.passwordWizard
 
+#Add A New User
 GET    /showAddUser                controllers.UserController.showAddUser
 POST   /postAddUser                controllers.UserController.addUser
 
+#View Edit And Update A User
 GET    /viewMyInfo                 controllers.UserController.viewMyInfo
 GET    /editUser/:id               controllers.UserController.editUser(id:String)
 POST   /updatePatient              controllers.UserController.updatePatient
 
+#Log Out/Clear Session
 POST   /logout                     controllers.UserController.logout
