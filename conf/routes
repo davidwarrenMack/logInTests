@@ -18,7 +18,7 @@ POST    /user                       controllers.SMSAmazonController.twoFactorGen
 GET    /twoFactor                  controllers.SMSAmazonController.showTwoFactor
 POST   /twoFactor                  controllers.SMSAmazonController.allowAccess
 
-#Admin Password/Password Wizard
+#Password Wizard
 GET    /addPassword                controllers.UserController.showAddPassword
 POST   /addPassword                controllers.UserController.passwordWizard
 
